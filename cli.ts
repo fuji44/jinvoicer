@@ -4,12 +4,14 @@ import { parseArgs as denoParseArgs } from "@deno/std/cli/parse_args.ts";
 import { Store } from "./store.ts";
 import { importCsv, importDir } from "./import.ts";
 import { AnnouncementOutput } from "./types.ts";
+import { downloadFullCsvZips } from "./dl_csv.ts";
 
 const subCommandNames = [
   "import",
   "find",
   "reset",
   "count",
+  "download",
 ] as const;
 type SubCommandName = typeof subCommandNames[number];
 
@@ -17,6 +19,26 @@ interface SubCommand<T, R> {
   name: SubCommandName;
   parseArgs: (args: string[]) => T;
   exec: (args: string[]) => Promise<R>;
+}
+
+class DownloadCsvSubCommand implements SubCommand<string, void> {
+  name = "download" as const;
+  parseArgs(args: string[]) {
+    if (args.length !== 1) {
+      console.error("Please provide a path to a directory.");
+      Deno.exit(1);
+    }
+    const [path] = args;
+    if (typeof path !== "string") {
+      console.error("Please provide a path to a directory.");
+      Deno.exit(1);
+    }
+    return path;
+  }
+  async exec(args: string[]) {
+    const path = this.parseArgs(args);
+    await downloadFullCsvZips(path);
+  }
 }
 
 class ImportSubCommand implements SubCommand<string, void> {
@@ -120,6 +142,11 @@ async function execSubCommand(args: string[]) {
     Deno.exit(1);
   }
   switch (args[0] as SubCommandName) {
+    case "download": {
+      const subCommand = new DownloadCsvSubCommand();
+      await subCommand.exec(args.slice(1));
+      Deno.exit(0);
+    }
     case "import": {
       const subCommand = new ImportSubCommand();
       await subCommand.exec(args.slice(1));

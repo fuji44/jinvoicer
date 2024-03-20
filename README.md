@@ -16,6 +16,9 @@ deno install --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts
 ## Usage
 
 ```shell
+# Download Full invoice issuer's CSV
+jinv download ./sample.csv
+
 # Import CSV to DB
 # csv file path or dir path including csv file.
 jinv import ./sample.csv
