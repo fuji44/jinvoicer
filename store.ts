@@ -26,6 +26,9 @@ export class Store {
       }
     }
     for (const [name, registratedNumbers] of nameLookupMap) {
+      if (name === "") {
+        continue;
+      }
       const registratedNumberResult = await this.kv.get<string[]>([
         "announcementNames",
         name,
