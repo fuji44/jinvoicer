@@ -1,4 +1,4 @@
-# japan-invoicer
+# jinvoicer
 
 This cli tool allows you to search for information on invoice issuing companies in Japan.
 
