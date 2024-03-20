@@ -6,28 +6,28 @@ To use this tool, you must import the CSV file provided by the National Tax Agen
 
 ## Install
 
-```shellsession
+```shell
 deno task install
 
-// or
+# or
 deno install --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts
 ```
 
 ## Usage
 
-```shellsession
-// Import CSV to DB
-// csv file path or dir path including csv file.
+```shell
+# Import CSV to DB
+# csv file path or dir path including csv file.
 jinv import ./sample.csv
 
-// Reset DB
+# Reset DB
 jinv reset
 
-// Find id or name
+# Find id or name
 jinv find --id T1000020012131
 jinv find --name 苫小牧市
 
-// Count all
+# Count all
 jinv count
 ```
 
@@ -71,12 +71,12 @@ $ jinv find --name 苫小牧市
 
 After executing the following commands, attach the debugger.
 
-```shellsession
+```shell
 deno run --inspect-brk --allow-read --allow-write -c ./deno.jsonc cli.ts find -n 苫小牧市
 ```
 
 ### Test
 
-```shellsession
+```shell
 deno task test
 ```
