@@ -65,20 +65,59 @@ export class Store {
   }
 
   async find(...registratedNumbers: string[]) {
-    const result = await this.kv.getMany<AnnouncementOutput[]>(
-      registratedNumbers.map((rn) => ["announcements", rn]),
+    const batchSize = 10;
+    const batches: string[][] = [];
+    for (let i = 0; i < registratedNumbers.length; i += batchSize) {
+      const batch = registratedNumbers.slice(i, i + batchSize);
+      batches.push(batch);
+    }
+    const results: AnnouncementOutput[] = [];
+    for (const batch of batches) {
+      const ans = await this.kv.getMany<AnnouncementOutput[]>(
+        batch.map((rn) => ["announcements", rn]),
+      );
+      results.push(
+        ...ans.map((r) => r.value).filter((v) =>
+          v !== null
+        ) as AnnouncementOutput[],
+      );
+    }
+    return results.toSorted((a, b) =>
+      a.registratedNumber.localeCompare(b.registratedNumber)
     );
-    return result.map((r) => r.value).filter((v) =>
-      v !== null
-    ) as AnnouncementOutput[];
   }
 
   async findManyByName(name: string) {
-    const result = await this.kv.get<string[]>(["announcementNames", name]);
-    if (result.value) {
-      return await this.find(...result.value);
+    const names = await this.kv.get<string[]>(["announcementNames", name]);
+    if (names.value) {
+      const result = await this.find(...names.value);
+      return result.toSorted((a, b) =>
+        a.registratedNumber.localeCompare(b.registratedNumber)
+      );
     }
     return [];
+  }
+
+  async searchByName(name: string) {
+    const iter = this.kv.list({ prefix: ["announcementNames"] });
+    const nameKeys: string[] = [];
+    for await (const { key } of iter) {
+      const k = key[1].toString();
+      if (k.includes(name)) {
+        nameKeys.push(k);
+      }
+    }
+    const ids: string[] = [];
+    for await (const key of nameKeys) {
+      const names = await this.kv.get<string[]>(["announcementNames", key]);
+      if (names.value) {
+        ids.push(...names.value);
+      }
+    }
+    const result = await this.find(...ids);
+    return result.toSorted((a, b) =>
+      a.registratedNumber.localeCompare(b.registratedNumber)
+    );
   }
 
   async delete(registratedNumber: string) {

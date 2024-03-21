@@ -94,7 +94,7 @@ class FindSubCommand implements SubCommand<unknown, AnnouncementOutput[]> {
       return store.find(parsedArgs.id);
     }
     if (parsedArgs.name) {
-      return store.findManyByName(parsedArgs.name);
+      return store.searchByName(parsedArgs.name);
     }
     return [];
   }

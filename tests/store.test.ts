@@ -77,7 +77,7 @@ const dummyDatumInput2: AnnouncementInput = {
   "addressRequestPrefectureCode": "",
   "addressRequestCityCode": "",
   "kana": "",
-  "name": "苫小牧市",
+  "name": "歌志内市",
   "addressInside": "",
   "addressInsidePrefectureCode": "",
   "addressInsideCityCode": "",
@@ -103,7 +103,7 @@ const dummyDatumOutput2: AnnouncementOutput = {
   "addressRequestPrefectureCode": null,
   "addressRequestCityCode": null,
   "kana": "",
-  "name": "苫小牧市",
+  "name": "歌志内市",
   "addressInside": "",
   "addressInsidePrefectureCode": null,
   "addressInsideCityCode": null,
@@ -140,6 +140,12 @@ Deno.test(async function storeTest(context) {
   await context.step(async function findManyByNameTest() {
     const store = new Store(kv);
     const result = await store.findManyByName("苫小牧市");
+    assertEquals(result.length, 1);
+    assertEquals(result[0], dummyDatumOutput1);
+  });
+  await context.step(async function searchByNameTest() {
+    const store = new Store(kv);
+    const result = await store.searchByName("市");
     assertEquals(result.length, 2);
     assertEquals(result[0], dummyDatumOutput1);
     assertEquals(result[1], dummyDatumOutput2);
@@ -153,7 +159,7 @@ Deno.test(async function storeTest(context) {
     ]);
     assertEquals(result.value, null);
     const result2 = await kv.get(["announcementNames", "苫小牧市"]);
-    assertEquals(result2.value, ["T1000000000002"]);
+    assertEquals(result2.value, null);
   });
   await context.step(async function resetTest() {
     const store = new Store(kv);
