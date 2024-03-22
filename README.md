@@ -1,6 +1,6 @@
 # jinvoicer
 
-This cli tool allows you to search for information on invoice issuing companies in Japan.
+This cli tool allows you to search for information on invoice issuing organizations in Japan.
 
 To use this tool, you must import the CSV file provided by the National Tax Agency (NTA). Please download the invoice issuer's CSV from the [NTA website](https://www.invoice-kohyo.nta.go.jp/download/index.html).
 
@@ -36,7 +36,7 @@ jinv count
 
 The following example searches for invoice issuers matching the name "苫小牧市"
 
-```shellsession
+```shell
 $ jinv find --name 苫小牧市
 [
   {
