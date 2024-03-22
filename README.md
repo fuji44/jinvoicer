@@ -10,14 +10,14 @@ To use this tool, you must import the CSV file provided by the National Tax Agen
 deno task install
 
 # or
-deno install --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts
+deno install --allow-net --allow-run --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts
 ```
 
 ## Usage
 
 ```shell
 # Download Full invoice issuer's CSV
-jinv download ./sample.csv
+jinv download ./.temp
 
 # Import CSV to DB
 # csv file path or dir path including csv file.

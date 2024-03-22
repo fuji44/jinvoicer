@@ -4,7 +4,7 @@
     "kv"
   ],
   "tasks": {
-    "install": "deno install --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts",
+    "install": "deno install --allow-net --allow-run --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts",
     "uninstall": "deno uninstall jinv",
     "test": "deno test --allow-read --allow-write"
   },
