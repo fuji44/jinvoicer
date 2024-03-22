@@ -1,10 +1,12 @@
 import {
   array,
+  date,
   Input,
   isoDate,
   literal,
   maxLength,
   minLength,
+  number,
   object,
   Output,
   picklist,
@@ -91,3 +93,9 @@ export type AnnouncementOutput = Output<typeof Announcement>;
 export const Announcements = array(Announcement);
 export type AnnouncementsInput = Input<typeof Announcements>;
 export type AnnouncementsOutput = Output<typeof Announcements>;
+
+export const AnnouncementCount = object({
+  "count": number(),
+  "updateDate": date(),
+});
+export type AnnouncementCount = Input<typeof AnnouncementCount>;

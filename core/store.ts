@@ -1,15 +1,53 @@
-import { AnnouncementOutput } from "$core/types.ts";
+import { AnnouncementCount, AnnouncementOutput } from "$core/types.ts";
 
-const KV_BATCH_SIZE = 1000;
+const KV_BATCH_SIZE = 500;
 
 export class Store {
   constructor(private kv: Deno.Kv) {}
+
+  private getLastUpdatedDate(an: AnnouncementOutput) {
+    // Update latest date
+    let lastUpdatedDate = new Date("1970-01-01");
+    const registrationDate = new Date(an.registrationDate);
+    if (registrationDate > lastUpdatedDate) {
+      lastUpdatedDate = registrationDate;
+    }
+    if (an.updateDate) {
+      const updateDate = new Date(an.updateDate);
+      if (updateDate > lastUpdatedDate) {
+        lastUpdatedDate = updateDate;
+      }
+    }
+    if (an.disposalDate) {
+      const disposalDate = new Date(an.disposalDate);
+      if (disposalDate > lastUpdatedDate) {
+        lastUpdatedDate = disposalDate;
+      }
+    }
+    if (an.expireDate) {
+      const expireDate = new Date(an.expireDate);
+      if (expireDate > lastUpdatedDate) {
+        lastUpdatedDate = expireDate;
+      }
+    }
+    return lastUpdatedDate;
+  }
 
   async save(ans: AnnouncementOutput[]) {
     let atomic = this.kv.atomic();
     const nameLookupMap = new Map<string, Set<string>>();
     let i = 0;
+    let latestDate = new Date("1970-01-01");
     for (const an of ans) {
+      if (an.latest === "0") {
+        continue;
+      }
+      // Update latest date
+      const lastUpdatedDate = this.getLastUpdatedDate(an);
+      if (lastUpdatedDate > latestDate) {
+        latestDate = lastUpdatedDate;
+      }
+      // Save announcement
       atomic.set(["announcements", an.registratedNumber], an);
       const registratedNumbers = nameLookupMap.get(an.name) ?? new Set();
       registratedNumbers.add(an.registratedNumber);
@@ -48,6 +86,13 @@ export class Store {
         i = 0;
       }
     }
+    const currentLatestDate = await this.kv.get<Date>([
+      "announcementLatestDate",
+    ]);
+    if (currentLatestDate.value && currentLatestDate.value > latestDate) {
+      latestDate = currentLatestDate.value;
+    }
+    atomic.set(["announcementLatestDate"], latestDate);
     const result = await atomic.commit();
     if (!result.ok) {
       console.error(result);
@@ -57,10 +102,22 @@ export class Store {
   }
 
   async count() {
+    const latestDateRes = await this.kv.get<Date>(["announcementLatestDate"]);
+    const latestDate = latestDateRes.value ?? new Date("1970-01-01");
+    const countRes = await this.kv.get<AnnouncementCount>([
+      "announcementCount",
+    ]);
+    if (
+      countRes.value &&
+      latestDate.valueOf() === countRes.value.updateDate.valueOf()
+    ) {
+      return countRes.value.count;
+    }
     let count = 0;
     for await (const _ of this.kv.list({ prefix: ["announcements"] })) {
       count++;
     }
+    await this.kv.set(["announcementCount"], { updateDate: latestDate, count });
     return count;
   }
 
