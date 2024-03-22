@@ -1,10 +1,12 @@
-import { assertEquals } from "@deno/std/assert/mod.ts";
-import { exists } from "@deno/std/fs/mod.ts";
-import { Store } from "../store.ts";
+import { assertEquals } from "$std/assert/mod.ts";
+import { exists } from "$std/fs/mod.ts";
 import { parse } from "@valibot/valibot";
-import { Announcements } from "../types.ts";
-import { AnnouncementOutput } from "../types.ts";
-import { AnnouncementInput } from "../types.ts";
+import { Store } from "$core/store.ts";
+import {
+  AnnouncementInput,
+  AnnouncementOutput,
+  Announcements,
+} from "$core/types.ts";
 
 const dummyDatumInput1: AnnouncementInput = {
   "sequenceNumber": "1",

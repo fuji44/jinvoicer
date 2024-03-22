@@ -1,10 +1,12 @@
+/// <reference lib="deno.unstable" />
 // deno-lint-ignore-file no-fallthrough
-import { parseArgs as denoParseArgs } from "@deno/std/cli/parse_args.ts";
 
-import { Store } from "./store.ts";
-import { importCsv, importDir } from "./import.ts";
-import { AnnouncementOutput } from "./types.ts";
-import { downloadFullCsvZips } from "./dl_csv.ts";
+import { parseArgs as denoParseArgs } from "$std/cli/parse_args.ts";
+
+import { Store } from "$core/store.ts";
+import { importCsv, importDir } from "$core/import.ts";
+import { AnnouncementOutput } from "$core/types.ts";
+import { downloadFullCsvZips } from "$core/dl_csv.ts";
 
 const subCommandNames = [
   "import",

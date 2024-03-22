@@ -1,4 +1,4 @@
-import { AnnouncementOutput } from "./types.ts";
+import { AnnouncementOutput } from "$core/types.ts";
 
 const KV_BATCH_SIZE = 1000;
 

@@ -1,19 +1,29 @@
 # jinvoicer
 
-This cli tool allows you to search for information on invoice issuing organizations in Japan.
+This tool allows you to search for information on invoice issuing organizations
+in Japan.
 
-To use this tool, you must import the CSV file provided by the National Tax Agency (NTA). Please download the invoice issuer's CSV from the [NTA website](https://www.invoice-kohyo.nta.go.jp/download/index.html).
-
-## Install
-
-```shell
-deno task install
-
-# or
-deno install --allow-net --allow-run --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts
-```
+To use this tool, you must import the CSV file provided by the National Tax
+Agency (NTA). Please download the invoice issuer's CSV from the
+[NTA website](https://www.invoice-kohyo.nta.go.jp/download/index.html).
 
 ## Usage
+
+### Web
+
+```shell
+deno task web:build && deno task web:preview
+```
+
+After starting, please access the following URL in your browser:
+<http://localhost:8000/>
+
+### CLI
+
+```shell
+# Command install
+deno task cli:install
+```
 
 ```shell
 # Download Full invoice issuer's CSV
@@ -75,7 +85,11 @@ $ jinv find --name 苫小牧市
 After executing the following commands, attach the debugger.
 
 ```shell
+# cli
 deno run --inspect-brk --allow-read --allow-write -c ./deno.jsonc cli.ts find -n 苫小牧市
+
+# web
+deno task web:start
 ```
 
 ### Test

@@ -1,7 +1,7 @@
-import { CsvParseStream } from "@deno/std/csv/mod.ts";
+import { CsvParseStream } from "$std/csv/mod.ts";
 import { parse } from "@valibot/valibot";
-import { Announcement, AnnouncementOutput } from "./types.ts";
-import { Store } from "./store.ts";
+import { Announcement, AnnouncementOutput } from "$core/types.ts";
+import { Store } from "$core/store.ts";
 
 export async function importCsv(
   path: string,

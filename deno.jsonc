@@ -4,13 +4,45 @@
     "kv"
   ],
   "tasks": {
-    "install": "deno install --allow-net --allow-run --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts",
-    "uninstall": "deno uninstall jinv",
-    "test": "deno test --allow-read --allow-write"
+    "test": "deno test --allow-read --allow-write",
+    "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    "cli:install": "deno install --allow-net --allow-run --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts",
+    "cli:uninstall": "deno uninstall jinv",
+    "web:cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
+    "web:manifest": "deno task web:cli manifest $(pwd)",
+    "web:start": "deno run -A --inspect --watch=./web/static/,./web/routes/ ./web/dev.ts",
+    "web:build": "deno run -A ./web/dev.ts build",
+    "web:preview": "deno run -A ./web/main.ts",
+    "web:update": "deno run -A -r https://fresh.deno.dev/update ./web/"
   },
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
+    }
+  },
+  "exclude": [
+    "**/_fresh/*"
+  ],
   "imports": {
-    "@deno/std/": "https://deno.land/std@0.220.1/",
+    "$fresh/": "https://deno.land/x/fresh@1.6.7/",
+    "preact": "https://esm.sh/preact@10.19.6",
+    "preact/": "https://esm.sh/preact@10.19.6/",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
+    "tailwindcss": "npm:tailwindcss@3.4.1",
+    "tailwindcss/": "npm:/tailwindcss@3.4.1/",
+    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
+    "$std/": "https://deno.land/std@0.220.1/",
     "@valibot/valibot": "jsr:@valibot/valibot@^0.30.0",
-    "deno_dom/": "https://deno.land/x/deno_dom@v0.1.45/"
-  }
+    "deno_dom/": "https://deno.land/x/deno_dom@v0.1.45/",
+    "$core/": "./core/"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
+  "nodeModulesDir": true
 }
