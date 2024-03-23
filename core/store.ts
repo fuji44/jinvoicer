@@ -33,6 +33,27 @@ export class Store {
     return lastUpdatedDate;
   }
 
+  private convertFullHalfWidth(text: string, toFullWidth: boolean): string {
+    const fullWidthOffset = 65248; // Difference between full-width and half-width characters
+    return text.split("").map((char) => {
+      const charCode = char.charCodeAt(0);
+      // Check if character is alphanumeric
+      if (
+        (charCode >= 65 && charCode <= 90) ||
+        (charCode >= 97 && charCode <= 122) ||
+        (charCode >= 48 && charCode <= 57)
+      ) {
+        // Convert between full-width and half-width by adding or subtracting the offset
+        return String.fromCharCode(
+          charCode + (toFullWidth ? fullWidthOffset : -fullWidthOffset),
+        );
+      } else {
+        // Non-alphanumeric characters remain unchanged
+        return char;
+      }
+    }).join("");
+  }
+
   async save(ans: AnnouncementOutput[]) {
     let atomic = this.kv.atomic();
     const nameLookupMap = new Map<string, Set<string>>();
@@ -145,7 +166,11 @@ export class Store {
   }
 
   async findManyByName(name: string) {
-    const names = await this.kv.get<string[]>(["announcementNames", name]);
+    const fullWidthName = this.convertFullHalfWidth(name, true);
+    const names = await this.kv.get<string[]>([
+      "announcementNames",
+      fullWidthName,
+    ]);
     if (names.value) {
       const result = await this.find(...names.value);
       return result.toSorted((a, b) =>
@@ -156,11 +181,12 @@ export class Store {
   }
 
   async searchByName(name: string) {
+    const fullWidthName = this.convertFullHalfWidth(name, true);
     const iter = this.kv.list({ prefix: ["announcementNames"] });
     const nameKeys: string[] = [];
     for await (const { key } of iter) {
       const k = key[1].toString();
-      if (k.includes(name)) {
+      if (k.includes(fullWidthName)) {
         nameKeys.push(k);
       }
     }
