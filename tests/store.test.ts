@@ -114,61 +114,45 @@ const dummyDatumOutput2: AnnouncementOutput = {
 };
 
 Deno.test(async function storeTest(context) {
-  // setup
-  const tempDir = `${import.meta.dirname}/../.temp`;
-  const dbFile = `${tempDir}/test.db`;
-  if (await exists(tempDir, { isDirectory: true })) {
-    if (await exists(dbFile, { isFile: true })) {
-      await Deno.remove(dbFile);
-    }
-  } else {
-    await Deno.mkdir(tempDir);
-  }
-  const kv = await Deno.openKv(dbFile);
-
   // test
   await context.step(async function saveTest() {
     const data = parse(Announcements, [dummyDatumInput1, dummyDatumInput2]);
-    const store = new Store(kv);
+    const store = new Store();
     const result = await store.save(data, new Date("2023-10-01"));
     assertEquals(typeof result, "string");
   });
   await context.step(async function findTest() {
-    const store = new Store(kv);
+    const store = new Store();
     const result = await store.find(dummyDatumInput1.registratedNumber);
     assertEquals(result.length, 1);
     assertEquals(result[0], dummyDatumOutput1);
   });
   await context.step(async function findManyByNameTest() {
-    const store = new Store(kv);
+    const store = new Store();
     const result = await store.findManyByName("苫小牧市");
     assertEquals(result.length, 1);
     assertEquals(result[0], dummyDatumOutput1);
   });
   await context.step(async function searchByNameTest() {
-    const store = new Store(kv);
+    const store = new Store();
     const result = await store.searchByName("市");
     assertEquals(result.length, 2);
     assertEquals(result[0], dummyDatumOutput1);
     assertEquals(result[1], dummyDatumOutput2);
   });
   await context.step(async function countTest() {
-    const store = new Store(kv);
+    const store = new Store();
     const count = await store.count();
     assertEquals(count, 2);
   });
   await context.step(async function resetTest() {
-    const store = new Store(kv);
+    const store = new Store();
     await store.reset();
-    const result = await kv.get([
-      "announcements",
-      dummyDatumInput1.registratedNumber,
-    ]);
-    assertEquals(result.value, null);
-    const result2 = await kv.get(["announcementNames", "苫小牧市"]);
-    assertEquals(result2.value, null);
+    const count = await store.count();
+    assertEquals(count, 0);
+    const result1 = await store.find(dummyDatumInput1.registratedNumber);
+    assertEquals(result1.length, 0);
+    const result2 = await store.findManyByName("苫小牧市");
+    assertEquals(result2.length, 0);
   });
-
-  // teardown
-  kv.close();
 });

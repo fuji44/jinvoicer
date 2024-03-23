@@ -12,7 +12,7 @@ export async function importCsv(
   const stream = file.readable.pipeThrough(new TextDecoderStream()).pipeThrough(
     new CsvParseStream(),
   );
-  const store = new Store(Store.getKv());
+  const store = new Store();
   const batch: AnnouncementOutput[] = [];
   const batchSize = options?.batchSize ?? 1000;
   for await (const record of stream) {

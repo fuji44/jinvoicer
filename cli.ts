@@ -95,7 +95,7 @@ class FindSubCommand implements SubCommand<unknown, AnnouncementOutput[]> {
   }
   async exec(args: string[]) {
     const parsedArgs = this.parseArgs(args);
-    const store = new Store(Store.getKv());
+    const store = new Store();
     if (parsedArgs.id) {
       return await store.find(parsedArgs.id);
     }
@@ -116,7 +116,7 @@ class ResetSubCommand implements SubCommand<void, string> {
   }
   async exec(args: string[]) {
     this.parseArgs(args);
-    const store = new Store(Store.getKv());
+    const store = new Store();
     return await store.reset();
   }
 }
@@ -131,7 +131,7 @@ class CountSubCommand implements SubCommand<void, number> {
   }
   async exec(args: string[]) {
     this.parseArgs(args);
-    const store = new Store(Store.getKv());
+    const store = new Store();
     return await store.count();
   }
 }

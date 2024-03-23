@@ -5,12 +5,6 @@ const path = Deno.env.get("KV_PATH");
 const kv = path ? await Deno.openKv(path) : await Deno.openKv();
 
 export class Store {
-  constructor(private kv: Deno.Kv) {}
-
-  static getKv() {
-    return kv;
-  }
-
   private getLastUpdatedDate(an: AnnouncementOutput) {
     // Update latest date
     let lastUpdatedDate = new Date("1970-01-01");
@@ -61,7 +55,7 @@ export class Store {
   }
 
   async save(ans: AnnouncementOutput[], updateDate: Date) {
-    let atomic = this.kv.atomic();
+    let atomic = kv.atomic();
     const nameLookupMap = new Map<string, Set<string>>();
     let i = 0;
     for (const an of ans) {
@@ -80,7 +74,7 @@ export class Store {
           console.error(result);
           throw new Error("Failed to save");
         }
-        atomic = this.kv.atomic();
+        atomic = kv.atomic();
         i = 0;
       }
     }
@@ -88,7 +82,7 @@ export class Store {
       if (name === "") {
         continue;
       }
-      const registratedNumberResult = await this.kv.get<string[]>([
+      const registratedNumberResult = await kv.get<string[]>([
         "announcementNames",
         name,
       ]);
@@ -103,7 +97,7 @@ export class Store {
           console.error(result);
           throw new Error("Failed to save");
         }
-        atomic = this.kv.atomic();
+        atomic = kv.atomic();
         i = 0;
       }
     }
@@ -117,9 +111,9 @@ export class Store {
   }
 
   async count() {
-    const updateDateRes = await this.kv.get<Date>(["announcementUpdateDate"]);
+    const updateDateRes = await kv.get<Date>(["announcementUpdateDate"]);
     const updateDate = updateDateRes.value ?? new Date("1970-01-01");
-    const countRes = await this.kv.get<AnnouncementCount>([
+    const countRes = await kv.get<AnnouncementCount>([
       "announcementCount",
     ]);
     if (
@@ -129,10 +123,10 @@ export class Store {
       return countRes.value.count;
     }
     let count = 0;
-    for await (const _ of this.kv.list({ prefix: ["announcements"] })) {
+    for await (const _ of kv.list({ prefix: ["announcements"] })) {
       count++;
     }
-    await this.kv.set(["announcementCount"], { updateDate, count });
+    await kv.set(["announcementCount"], { updateDate, count });
     return count;
   }
 
@@ -145,7 +139,7 @@ export class Store {
     }
     const results: AnnouncementOutput[] = [];
     for (const batch of batches) {
-      const ans = await this.kv.getMany<AnnouncementOutput[]>(
+      const ans = await kv.getMany<AnnouncementOutput[]>(
         batch.map((rn) => ["announcements", rn]),
       );
       results.push(
@@ -161,7 +155,7 @@ export class Store {
 
   async findManyByName(name: string) {
     const fullWidthName = this.convertFullHalfWidth(name, true);
-    const names = await this.kv.get<string[]>([
+    const names = await kv.get<string[]>([
       "announcementNames",
       fullWidthName,
     ]);
@@ -176,7 +170,7 @@ export class Store {
 
   async searchByName(name: string) {
     const fullWidthName = this.convertFullHalfWidth(name, true);
-    const iter = this.kv.list({ prefix: ["announcementNames"] });
+    const iter = kv.list({ prefix: ["announcementNames"] });
     const nameKeys: string[] = [];
     for await (const { key } of iter) {
       const k = key[1].toString();
@@ -186,7 +180,7 @@ export class Store {
     }
     const ids: string[] = [];
     for await (const key of nameKeys) {
-      const names = await this.kv.get<string[]>(["announcementNames", key]);
+      const names = await kv.get<string[]>(["announcementNames", key]);
       if (names.value) {
         ids.push(...names.value);
       }
@@ -198,8 +192,8 @@ export class Store {
   }
 
   async reset() {
-    let atomic = this.kv.atomic();
-    const iter = this.kv.list({ prefix: ["announcements"] });
+    let atomic = kv.atomic();
+    const iter = kv.list({ prefix: ["announcements"] });
     let i = 0;
     for await (const { key } of iter) {
       atomic.delete(key);
@@ -210,11 +204,11 @@ export class Store {
           console.error(result);
           throw new Error("Failed to reset");
         }
-        atomic = this.kv.atomic();
+        atomic = kv.atomic();
         i = 0;
       }
     }
-    const iter2 = this.kv.list({ prefix: ["announcementNames"] });
+    const iter2 = kv.list({ prefix: ["announcementNames"] });
     for await (const { key } of iter2) {
       atomic.delete(key);
       i++;
@@ -224,7 +218,7 @@ export class Store {
           console.error(result);
           throw new Error("Failed to reset");
         }
-        atomic = this.kv.atomic();
+        atomic = kv.atomic();
         i = 0;
       }
     }
