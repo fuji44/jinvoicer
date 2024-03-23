@@ -18,6 +18,8 @@ deno task web:build && deno task web:preview
 After starting, please access the following URL in your browser:
 <http://localhost:8000/>
 
+![web-capture](./docs/image.png)
+
 ### CLI
 
 ```shell
