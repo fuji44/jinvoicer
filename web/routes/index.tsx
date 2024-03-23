@@ -17,12 +17,21 @@ export const handler: Handlers<Data> = {
     if (!q) {
       return ctx.render({ ans: [] });
     }
-    const apiUrl = new URL(`/api/announcement-names/${q}`, ctx.url.origin);
-    const res = await fetch(apiUrl);
-    if (!res.ok) {
-      return ctx.render({ ans: [] });
+    const queries = [
+      fetch(new URL(`/api/announcement-names/${q}`, ctx.url.origin)),
+    ];
+    if (q.startsWith("T")) {
+      queries.push(fetch(new URL(`/api/announcements/${q}`, ctx.url.origin)));
     }
-    return ctx.render({ ans: await res.json() ?? [], q });
+    const [resByName, resById] = await Promise.all(queries);
+    const ans = [];
+    if (resByName.ok) {
+      ans.push(...(await resByName.json()));
+    }
+    if (resById?.ok) {
+      ans.push(...(await resById.json()));
+    }
+    return ctx.render({ ans, q });
   },
 };
 
@@ -38,7 +47,7 @@ export default function Home({ data }: PageProps<Data>) {
             <input
               type="text"
               name="q"
-              placeholder={"名前を入力してください"}
+              placeholder={"登録番号または名前を入力してください"}
               value={q}
               class="flex-auto px-3 py-2 bg-white rounded border(gray-500 2) disabled:(opacity-50 cursor-not-allowed)"
             />
