@@ -6,7 +6,10 @@ export class Store {
   constructor(private kv: Deno.Kv) {}
 
   static async openKv() {
-    const path = Deno.env.get("KV_PATH") ?? undefined;
+    const path = Deno.env.get("KV_PATH");
+    if (!path) {
+      return await Deno.openKv();
+    }
     return await Deno.openKv(path);
   }
 
