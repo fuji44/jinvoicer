@@ -3,7 +3,7 @@ import { Handlers } from "$fresh/server.ts";
 import { Store } from "$core/store.ts";
 import { AnnouncementOutput } from "$core/types.ts";
 
-const kv = await Deno.openKv();
+const kv = await Store.openKv();
 
 export const handler: Handlers<AnnouncementOutput | null> = {
   async GET(_req, ctx) {

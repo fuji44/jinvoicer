@@ -5,6 +5,11 @@ const KV_BATCH_SIZE = 500;
 export class Store {
   constructor(private kv: Deno.Kv) {}
 
+  static async openKv() {
+    const path = Deno.env.get("KV_PATH") ?? undefined;
+    return await Deno.openKv(path);
+  }
+
   private getLastUpdatedDate(an: AnnouncementOutput) {
     // Update latest date
     let lastUpdatedDate = new Date("1970-01-01");

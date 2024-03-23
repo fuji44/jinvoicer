@@ -5,14 +5,13 @@ import { Store } from "$core/store.ts";
 
 export async function importCsv(
   path: string,
-  options?: { batchSize: number; dbFile: string },
+  options?: { batchSize: number },
 ) {
   const file = await Deno.open(path, { read: true });
   const stream = file.readable.pipeThrough(new TextDecoderStream()).pipeThrough(
     new CsvParseStream(),
   );
-  const dbFile = options?.dbFile ?? undefined;
-  const store = new Store(await Deno.openKv(dbFile));
+  const store = new Store(await Store.openKv());
   const batch: AnnouncementOutput[] = [];
   const batchSize = options?.batchSize ?? 1000;
   for await (const record of stream) {
@@ -79,7 +78,7 @@ export async function importCsv(
 
 export async function importDir(
   dir: string,
-  options?: { batchSize: number; dbFile: string },
+  options?: { batchSize: number },
 ) {
   const entries = Deno.readDir(dir);
   const csvs: string[] = [];
