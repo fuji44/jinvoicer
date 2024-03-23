@@ -43,28 +43,33 @@ class DownloadCsvSubCommand implements SubCommand<string, void> {
   }
 }
 
-class ImportSubCommand implements SubCommand<string, void> {
+class ImportSubCommand
+  implements SubCommand<{ path: string; updateDate: Date }, void> {
   name = "import" as const;
   parseArgs(args: string[]) {
-    if (args.length !== 1) {
-      console.error("Please provide a path to a CSV file.");
+    if (args.length !== 2) {
+      console.error("Please provide a path to a CSV file and a date string.");
       Deno.exit(1);
     }
-    const [path] = args;
+    const [path, updateISODate] = args;
     if (typeof path !== "string") {
       console.error("Please provide a path to a CSV file.");
       Deno.exit(1);
     }
-    return path;
+    if (typeof updateISODate !== "string") {
+      console.error("Please provide a valid date string.");
+      Deno.exit(1);
+    }
+    return { path, updateDate: new Date(updateISODate) };
   }
   async exec(args: string[]) {
-    const path = this.parseArgs(args);
+    const { path, updateDate } = this.parseArgs(args);
     if (await Deno.stat(path).then((s) => s.isDirectory)) {
-      await importDir(path);
+      await importDir(path, updateDate);
       return;
     }
     if (await Deno.stat(path).then((s) => s.isFile)) {
-      await importCsv(path);
+      await importCsv(path, updateDate);
       return;
     }
     throw new Error("Invalid path.");

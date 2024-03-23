@@ -130,7 +130,7 @@ Deno.test(async function storeTest(context) {
   await context.step(async function saveTest() {
     const data = parse(Announcements, [dummyDatumInput1, dummyDatumInput2]);
     const store = new Store(kv);
-    const result = await store.save(data);
+    const result = await store.save(data, new Date("2023-10-01"));
     assertEquals(typeof result, "string");
   });
   await context.step(async function findTest() {
@@ -152,16 +152,10 @@ Deno.test(async function storeTest(context) {
     assertEquals(result[0], dummyDatumOutput1);
     assertEquals(result[1], dummyDatumOutput2);
   });
-  await context.step(async function deleteTest() {
+  await context.step(async function countTest() {
     const store = new Store(kv);
-    await store.delete(dummyDatumInput1.registratedNumber);
-    const result = await kv.get([
-      "announcements",
-      dummyDatumInput1.registratedNumber,
-    ]);
-    assertEquals(result.value, null);
-    const result2 = await kv.get(["announcementNames", "苫小牧市"]);
-    assertEquals(result2.value, null);
+    const count = await store.count();
+    assertEquals(count, 2);
   });
   await context.step(async function resetTest() {
     const store = new Store(kv);

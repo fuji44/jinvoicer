@@ -5,6 +5,7 @@ import { Store } from "$core/store.ts";
 
 export async function importCsv(
   path: string,
+  updateDate: Date,
   options?: { batchSize: number },
 ) {
   const file = await Deno.open(path, { read: true });
@@ -24,7 +25,7 @@ export async function importCsv(
       country,
       latest,
       registrationDate,
-      updateDate,
+      recordUpdateDate,
       disposalDate,
       expireDate,
       address,
@@ -50,7 +51,7 @@ export async function importCsv(
       country,
       latest,
       registrationDate,
-      updateDate,
+      updateDate: recordUpdateDate,
       disposalDate,
       expireDate,
       address,
@@ -69,15 +70,16 @@ export async function importCsv(
     });
     batch.push(an);
     if (batch.length % batchSize === 0) {
-      await store.save(batch);
+      await store.save(batch, updateDate);
       batch.length = 0;
     }
   }
-  await store.save(batch);
+  await store.save(batch, updateDate);
 }
 
 export async function importDir(
   dir: string,
+  updateDate: Date,
   options?: { batchSize: number },
 ) {
   const entries = Deno.readDir(dir);
@@ -88,8 +90,12 @@ export async function importDir(
     }
   }
   console.log(`Found ${csvs.length} CSV files in ${dir}`);
-  for (const csv of csvs) {
-    console.log(`Importing ${csv}`);
-    await importCsv(`${dir}/${csv}`, options);
-  }
+  await Promise.all(
+    csvs.map((csv) =>
+      new Promise<void>((resolve) => {
+        console.log(`Importing ${csv}`);
+        importCsv(`${dir}/${csv}`, updateDate, options).then(resolve);
+      })
+    ),
+  );
 }

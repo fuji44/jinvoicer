@@ -6,16 +6,25 @@ import { AnnouncementOutput } from "$core/types.ts";
 import AnnouncementList from "../islands/AnnouncementList.tsx";
 
 interface Data {
+  total: number;
   ans: AnnouncementOutput[];
   q?: string;
 }
 
 export const handler: Handlers<Data> = {
   async GET(req, ctx) {
+    const totalRes = await fetch(
+      new URL(`/api/announcement-count`, ctx.url.origin),
+    );
+    if (!totalRes.ok) {
+      return ctx.render({ total: 0, ans: [] });
+    }
+    const { total } = await totalRes.json();
+
     const url = new URL(req.url);
     const q = url.searchParams.get("q");
     if (!q) {
-      return ctx.render({ ans: [] });
+      return ctx.render({ total, ans: [] });
     }
     const queries = [
       fetch(new URL(`/api/announcement-names/${q}`, ctx.url.origin)),
@@ -31,7 +40,7 @@ export const handler: Handlers<Data> = {
     if (resById?.ok) {
       ans.push(...(await resById.json()));
     }
-    return ctx.render({ ans, q });
+    return ctx.render({ total, ans, q });
   },
 };
 
@@ -60,10 +69,23 @@ export default function Home({ data }: PageProps<Data>) {
           </div>
         </form>
       </div>
-      <div class="my-4">
-        {ans.length > 0
-          ? <p class="text-center">Search {ans.length} results for "{q}"</p>
-          : <p class="text-center">No results for "{q}"</p>}
+      <div class="flex flex-row my-2 px-3 py-3 bg-[#f7f8fa] rounded">
+        <div class="grow">
+          {ans.length > 0
+            ? (
+              <span class="text-center">
+                Search results for "{q}"
+              </span>
+            )
+            : q !== ""
+            ? <span class="text-center">No results for "{q}"</span>
+            : null}
+        </div>
+        <div class="grow text-right">
+          <span class="px-3 py-1 text-center bg-white rounded-full">
+            {ans.length ?? 0} / {data.total}
+          </span>
+        </div>
       </div>
       <div class="my-4">
         {ans.length > 0 ? <AnnouncementList announcements={ans} /> : null}

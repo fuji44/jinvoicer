@@ -59,19 +59,13 @@ export class Store {
     }).join("");
   }
 
-  async save(ans: AnnouncementOutput[]) {
+  async save(ans: AnnouncementOutput[], updateDate: Date) {
     let atomic = this.kv.atomic();
     const nameLookupMap = new Map<string, Set<string>>();
     let i = 0;
-    let latestDate = new Date("1970-01-01");
     for (const an of ans) {
       if (an.latest === "0") {
         continue;
-      }
-      // Update latest date
-      const lastUpdatedDate = this.getLastUpdatedDate(an);
-      if (lastUpdatedDate > latestDate) {
-        latestDate = lastUpdatedDate;
       }
       // Save announcement
       atomic.set(["announcements", an.registratedNumber], an);
@@ -112,13 +106,7 @@ export class Store {
         i = 0;
       }
     }
-    const currentLatestDate = await this.kv.get<Date>([
-      "announcementLatestDate",
-    ]);
-    if (currentLatestDate.value && currentLatestDate.value > latestDate) {
-      latestDate = currentLatestDate.value;
-    }
-    atomic.set(["announcementLatestDate"], latestDate);
+    atomic.set(["announcementUpdateDate"], updateDate);
     const result = await atomic.commit();
     if (!result.ok) {
       console.error(result);
@@ -128,14 +116,14 @@ export class Store {
   }
 
   async count() {
-    const latestDateRes = await this.kv.get<Date>(["announcementLatestDate"]);
-    const latestDate = latestDateRes.value ?? new Date("1970-01-01");
+    const updateDateRes = await this.kv.get<Date>(["announcementUpdateDate"]);
+    const updateDate = updateDateRes.value ?? new Date("1970-01-01");
     const countRes = await this.kv.get<AnnouncementCount>([
       "announcementCount",
     ]);
     if (
       countRes.value &&
-      latestDate.valueOf() === countRes.value.updateDate.valueOf()
+      updateDate.valueOf() === countRes.value.updateDate.valueOf()
     ) {
       return countRes.value.count;
     }
@@ -143,7 +131,7 @@ export class Store {
     for await (const _ of this.kv.list({ prefix: ["announcements"] })) {
       count++;
     }
-    await this.kv.set(["announcementCount"], { updateDate: latestDate, count });
+    await this.kv.set(["announcementCount"], { updateDate, count });
     return count;
   }
 
@@ -208,35 +196,6 @@ export class Store {
     );
   }
 
-  async delete(registratedNumber: string) {
-    const announcements = await this.find(registratedNumber);
-    if (announcements.length === 0) {
-      return;
-    }
-    const atomic = this.kv.atomic();
-    atomic.delete(["announcements", registratedNumber]);
-    const announcementNames = await this.kv.get<string[]>([
-      "announcementNames",
-      announcements[0].name,
-    ]);
-    if (announcementNames.value) {
-      const updated = announcementNames.value.filter((rn) =>
-        rn !== registratedNumber
-      );
-      if (updated.length === 0) {
-        atomic.delete(["announcementNames", announcements[0].name]);
-      } else {
-        atomic.set(["announcementNames", announcements[0].name], updated);
-      }
-    }
-    const result = await atomic.commit();
-    if (!result.ok) {
-      console.error(result);
-      throw new Error("Failed to delete");
-    }
-    return result.versionstamp;
-  }
-
   async reset() {
     let atomic = this.kv.atomic();
     const iter = this.kv.list({ prefix: ["announcements"] });
@@ -268,6 +227,8 @@ export class Store {
         i = 0;
       }
     }
+    atomic.delete(["announcementUpdateDate"]);
+    atomic.delete(["announcementCount"]);
     const result = await atomic.commit();
     if (!result.ok) {
       console.error(result);

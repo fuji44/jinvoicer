@@ -31,7 +31,7 @@ jinv download ./.temp
 
 # Import CSV to DB
 # csv file path or dir path including csv file.
-jinv import ./sample.csv
+jinv import ./.temp 2024-02-29
 
 # Reset DB
 jinv reset

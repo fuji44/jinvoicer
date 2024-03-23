@@ -1,6 +1,7 @@
 import { useSignal } from "@preact/signals";
 import IconUser from "https://deno.land/x/tabler_icons_tsx@0.0.5/tsx/user.tsx";
 import IconBuilding from "https://deno.land/x/tabler_icons_tsx@0.0.5/tsx/building.tsx";
+import IconExternalLink from "https://deno.land/x/tabler_icons_tsx@0.0.5/tsx/external-link.tsx";
 
 import { AnnouncementOutput } from "$core/types.ts";
 
@@ -41,7 +42,20 @@ export default function AnnouncementList({ announcements }: Props) {
               </span>
               <span>{a.tradeName}</span>
             </div>
-            <span class="grow text-right">{a.registratedNumber}</span>
+            <div class="flex-none text-right">
+              <a
+                class="hover:underline active:underline focus:underline"
+                target="_blank"
+                href={`https://www.invoice-kohyo.nta.go.jp/regno-search/detail?selRegNo=${
+                  a.registratedNumber.slice(1)
+                }`}
+              >
+                <div class="flex flex-row-reverse items-center gap-1">
+                  <IconExternalLink class="w-4 h-4" />
+                  <span class="">{a.registratedNumber}</span>
+                </div>
+              </a>
+            </div>
           </div>
           <div class="text-sm">{a.address}</div>
         </div>
