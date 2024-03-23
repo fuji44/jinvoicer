@@ -1,16 +1,14 @@
 import { AnnouncementCount, AnnouncementOutput } from "$core/types.ts";
 
 const KV_BATCH_SIZE = 500;
+const path = Deno.env.get("KV_PATH");
+const kv = path ? await Deno.openKv(path) : await Deno.openKv();
 
 export class Store {
   constructor(private kv: Deno.Kv) {}
 
-  static async openKv() {
-    const path = Deno.env.get("KV_PATH");
-    if (!path) {
-      return await Deno.openKv();
-    }
-    return await Deno.openKv(path);
+  static getKv() {
+    return kv;
   }
 
   private getLastUpdatedDate(an: AnnouncementOutput) {

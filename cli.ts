@@ -95,13 +95,12 @@ class FindSubCommand implements SubCommand<unknown, AnnouncementOutput[]> {
   }
   async exec(args: string[]) {
     const parsedArgs = this.parseArgs(args);
-    const kv = await Store.openKv();
-    const store = new Store(kv);
+    const store = new Store(Store.getKv());
     if (parsedArgs.id) {
-      return store.find(parsedArgs.id);
+      return await store.find(parsedArgs.id);
     }
     if (parsedArgs.name) {
-      return store.searchByName(parsedArgs.name);
+      return await store.searchByName(parsedArgs.name);
     }
     return [];
   }
@@ -117,9 +116,8 @@ class ResetSubCommand implements SubCommand<void, string> {
   }
   async exec(args: string[]) {
     this.parseArgs(args);
-    const kv = await Store.openKv();
-    const store = new Store(kv);
-    return store.reset();
+    const store = new Store(Store.getKv());
+    return await store.reset();
   }
 }
 
@@ -133,9 +131,8 @@ class CountSubCommand implements SubCommand<void, number> {
   }
   async exec(args: string[]) {
     this.parseArgs(args);
-    const kv = await Store.openKv();
-    const store = new Store(kv);
-    return store.count();
+    const store = new Store(Store.getKv());
+    return await store.count();
   }
 }
 
