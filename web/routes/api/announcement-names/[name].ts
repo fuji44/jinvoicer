@@ -8,7 +8,7 @@ export const handler: Handlers<AnnouncementOutput | null> = {
     const name = ctx.params.name;
     const parsedName = decodeURIComponent(name);
     const store = new Store();
-    const ans = await store.searchByName(parsedName);
+    const ans = await store.findManyByName(parsedName);
     return new Response(JSON.stringify(ans));
   },
 };

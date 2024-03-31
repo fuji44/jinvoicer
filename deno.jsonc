@@ -4,7 +4,8 @@
     "kv"
   ],
   "tasks": {
-    "test": "KV_PATH='.temp/test.dba' deno test --allow-env --allow-read --allow-write",
+    "test": "deno test --env=.env.test --allow-env --allow-read --allow-write",
+    "test:debug": "deno test --env=.env.test --inspect-wait --allow-env --allow-read --allow-write",
     "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     "cli:install": "deno install --allow-env --allow-net --allow-run --allow-read --allow-write -c ./deno.jsonc -n jinv ./cli.ts",
     "cli:uninstall": "deno uninstall jinv",

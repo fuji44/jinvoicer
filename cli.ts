@@ -100,7 +100,7 @@ class FindSubCommand implements SubCommand<unknown, AnnouncementOutput[]> {
       return await store.find(parsedArgs.id);
     }
     if (parsedArgs.name) {
-      return await store.searchByName(parsedArgs.name);
+      return await store.findManyByName(parsedArgs.name);
     }
     return [];
   }

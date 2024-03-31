@@ -63,7 +63,10 @@ export class Store {
         continue;
       }
       // Save announcement
-      atomic.set(["announcements", an.registratedNumber], an);
+      atomic.set(
+        ["announcements", "registratedNumber", an.registratedNumber],
+        an,
+      );
       const registratedNumbers = nameLookupMap.get(an.name) ?? new Set();
       registratedNumbers.add(an.registratedNumber);
       nameLookupMap.set(an.name, registratedNumbers);
@@ -83,13 +86,14 @@ export class Store {
         continue;
       }
       const registratedNumberResult = await kv.get<string[]>([
-        "announcementNames",
-        name,
+        "announcements",
+        "name",
+        ...name,
       ]);
-      const updated = registratedNumberResult.value
+      const newValue = registratedNumberResult.value
         ? new Set([...registratedNumberResult.value, ...registratedNumbers])
         : registratedNumbers;
-      atomic.set(["announcementNames", name], Array.from(updated));
+      atomic.set(["announcements", "name", ...name], Array.from(newValue));
       i++;
       if (i % KV_BATCH_SIZE === 0) {
         const result = await atomic.commit();
@@ -123,7 +127,9 @@ export class Store {
       return countRes.value.count;
     }
     let count = 0;
-    for await (const _ of kv.list({ prefix: ["announcements"] })) {
+    for await (
+      const _ of kv.list({ prefix: ["announcements", "registratedNumber"] })
+    ) {
       count++;
     }
     await kv.set(["announcementCount"], { updateDate, count });
@@ -140,7 +146,7 @@ export class Store {
     const results: AnnouncementOutput[] = [];
     for (const batch of batches) {
       const ans = await kv.getMany<AnnouncementOutput[]>(
-        batch.map((rn) => ["announcements", rn]),
+        batch.map((rn) => ["announcements", "registratedNumber", rn]),
       );
       results.push(
         ...ans.map((r) => r.value).filter((v) =>
@@ -155,40 +161,36 @@ export class Store {
 
   async findManyByName(name: string) {
     const fullWidthName = this.convertFullHalfWidth(name, true);
-    const names = await kv.get<string[]>([
-      "announcementNames",
-      fullWidthName,
+    // Search for partial matches
+    const nameIter = kv.list<string[]>({
+      prefix: ["announcements", "name", ...fullWidthName],
+    });
+    const results: AnnouncementOutput[] = [];
+    for await (const { value } of nameIter) {
+      if (value && value.length > 0) {
+        const ans = await this.find(...value);
+        results.push(...ans);
+      }
+    }
+    // Search for full matches
+    const ids = await kv.get<string[]>([
+      "announcements",
+      "name",
+      ...fullWidthName,
     ]);
-    if (names.value) {
-      const result = await this.find(...names.value);
-      return result.toSorted((a, b) =>
-        a.registratedNumber.localeCompare(b.registratedNumber)
-      );
+    if (ids.value && ids.value.length > 0) {
+      const ans = await this.find(...ids.value);
+      for (const r of ans) {
+        if (results.find((v) => v.registratedNumber === r.registratedNumber)) {
+          continue;
+        }
+        results.push(r);
+      }
+    }
+    if (results.length > 0) {
+      return results;
     }
     return [];
-  }
-
-  async searchByName(name: string) {
-    const fullWidthName = this.convertFullHalfWidth(name, true);
-    const iter = kv.list({ prefix: ["announcementNames"] });
-    const nameKeys: string[] = [];
-    for await (const { key } of iter) {
-      const k = key[1].toString();
-      if (k.includes(fullWidthName)) {
-        nameKeys.push(k);
-      }
-    }
-    const ids: string[] = [];
-    for await (const key of nameKeys) {
-      const names = await kv.get<string[]>(["announcementNames", key]);
-      if (names.value) {
-        ids.push(...names.value);
-      }
-    }
-    const result = await this.find(...ids);
-    return result.toSorted((a, b) =>
-      a.registratedNumber.localeCompare(b.registratedNumber)
-    );
   }
 
   async reset() {

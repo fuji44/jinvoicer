@@ -1,6 +1,12 @@
 {
   "deno.enable": true,
   "deno.lint": true,
+  "deno.testing.args": [
+    "--allow-all",
+    "--unstable-kv",
+    "--env=.env.test",
+    // "--inspect-wait"
+  ],
   "editor.defaultFormatter": "denoland.vscode-deno",
   "[typescriptreact]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
