@@ -88,7 +88,8 @@ After executing the following commands, attach the debugger.
 
 ```shell
 # cli
-deno run --inspect-brk --allow-read --allow-write -c ./deno.jsonc cli.ts find -n 苫小牧市
+# using --inspect options
+deno run -A --env-file=.env -c ./deno.jsonc --inspect-brk cli.ts find -n 苫小牧市
 
 # web
 deno task web:start
