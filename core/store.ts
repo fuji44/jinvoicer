@@ -210,20 +210,6 @@ export class Store {
         i = 0;
       }
     }
-    const iter2 = kv.list({ prefix: ["announcementNames"] });
-    for await (const { key } of iter2) {
-      atomic.delete(key);
-      i++;
-      if (i % KV_BATCH_SIZE === 0) {
-        const result = await atomic.commit();
-        if (!result.ok) {
-          console.error(result);
-          throw new Error("Failed to reset");
-        }
-        atomic = kv.atomic();
-        i = 0;
-      }
-    }
     atomic.delete(["announcementUpdateDate"]);
     atomic.delete(["announcementCount"]);
     const result = await atomic.commit();
